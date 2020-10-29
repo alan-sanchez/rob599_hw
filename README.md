@@ -1,2 +1,2 @@
-#My Homework
+#MyHomework
 This is my homework
