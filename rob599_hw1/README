@@ -1,0 +1,22 @@
+I added an rviz default file. I figured this may help
+in setting up the visualization.
+
+I don't have other nodes to run my code. I used ther terminal
+to call my service and action sever.
+
+ examples:
+      rosservice call /stopping_distance 1.5
+
+      rostopic pub /Stop_Action/goalob599_hw1/StopActionGoal "header:
+        seq: 0
+          stamp:
+          secs: 0
+          nsecs: 0
+          frame_id: ''
+          goal_id:
+            stamp:
+              secs: 0
+                nsecs: 0
+                id: ''
+        goal:
+        distance: 1"

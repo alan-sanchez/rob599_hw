@@ -1,0 +1,6 @@
+<launch>
+	<node pkg="rob599_hw1" name="approach" type="approach.py" output="screen"/>
+	<node pkg="rob599_hw1" name="laser_filter" type="laser_filter.py" output="screen"/>
+	<node pkg="rob599_hw1" name="wall_angle" type="wall_angle.py" output="screen"/>
+
+</launch>

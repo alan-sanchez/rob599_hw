@@ -1,0 +1,8 @@
+# goal
+int64 distance
+---
+# result
+bool successful
+---
+# feedback
+int64 progress
