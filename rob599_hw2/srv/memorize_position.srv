@@ -1,0 +1,5 @@
+# Input
+string location
+---
+# Output
+bool success
