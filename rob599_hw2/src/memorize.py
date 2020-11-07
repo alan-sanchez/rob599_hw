@@ -68,8 +68,7 @@ class Memorize:
 
 if __name__ == '__main__':
 	# Initialize the node
-	rospy.init_node('approach')
-	Approach()
-
+	rospy.init_node('memorize')
+	Memorize()
 
 	rospy.spin()
