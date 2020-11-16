@@ -1,5 +1,5 @@
 # goal
-int64 distance
+string patrol
 ---
 # result
 bool successful

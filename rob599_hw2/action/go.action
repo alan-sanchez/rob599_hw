@@ -1,0 +1,9 @@
+# goal
+string location
+---
+# result
+bool successful
+---
+# feedback
+#geometry_msgs/Point progress
+string progress
