@@ -94,12 +94,14 @@ class Memorize:
 			self.go_action_server.set_succeeded(goResult(successful=result))
 		else:
 			rospy.logerr("You typed in a location that doesn't exist in the data structure.")
+			self.go_action_server.set_succeeded(goResult(successful=False))
 
 	# Action sever to run patrol
 	def patrol_action_callback(self,goal):
 		# Forloop for patrol movement
 		for key in self.struct:
 			self.move_to(key)
+
 		self.patrol_action_server.set_succeeded(patrolResult(successful=True))
 
 
@@ -131,11 +133,13 @@ class Memorize:
 
 		# Euclidean distance feedback
 		time_out = 0
-		while self.move_base.get_state() != GoalStatus.SUCCEEDED or time_out > 20:
+		while self.move_base.get_state() != GoalStatus.SUCCEEDED or time_out > 40:
 			position,_ = self.get_location(location)
-			eucl_dist = math.hypot(position[0],position[1])
+			x = position[0] - self.goal.target_pose.pose.position.x
+			y = position[1] - self.goal.target_pose.pose.position.y
+			eucl_dist = math.hypot(x,y)
 			self.go_action_server.publish_feedback(goFeedback(progress=str(eucl_dist)))
-			time.sleep(1)
+			time.sleep(.5)
 
 		# Wait for result and return a boolean of the success
 		self.move_base.wait_for_result()
