@@ -129,7 +129,7 @@ class Memorize:
 		self.move_base.send_goal(self.goal, active_cb=self.active_callback, feedback_cb=self.feedback_callback,
 			done_cb=self.done_callback)
 
-
+		# Euclidean distance feedback
 		time_out = 0
 		while self.move_base.get_state() != GoalStatus.SUCCEEDED or time_out > 20:
 			position,_ = self.get_location(location)
@@ -137,6 +137,7 @@ class Memorize:
 			self.go_action_server.publish_feedback(goFeedback(progress=str(eucl_dist)))
 			time.sleep(1)
 
+		# Wait for result and return a boolean of the success
 		self.move_base.wait_for_result()
 		return self.move_base.get_state() == GoalStatus.SUCCEEDED
 
