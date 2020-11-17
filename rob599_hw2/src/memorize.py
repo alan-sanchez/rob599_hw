@@ -56,25 +56,26 @@ class Memorize:
 		# Set the orientation in the coordinate frame.
 		self.goal.target_pose.pose.orientation = Quaternion(0,0,0,1)
 
-		# Set pose threshold for the go_action_feedback
-		self.threshold = .05
 
-
-
+	# Service callback for stored location
 	def srv_callback(self,request):
+		# Get position and quaternion of current location.
 		position,quaternion = self.get_location(request.location)
+
+		# Add location name and values in data structure
 		self.struct[request.location] =[position,quaternion]
-		# print(self.struct)
 		return memorize_positionResponse("Location is stored.")
 
 
-
+	# Service callback for creating and uploading data structure of locations
 	def rw_srv_callback(self,request):
+		# Store data in locations.pickle file
 		if request.order == "write":
 			with open('locations.pickle', 'wb') as handle:
 				pickle.dump(self.struct, handle, protocol=None)
 			return read_writeResponse("The data structure has been saved")
 
+		# Load data from locations.pickle file
 		elif request.order == "read":
 			with open('locations.pickle', 'rb') as handle:
 				self.struct = pickle.load(handle)
@@ -85,24 +86,24 @@ class Memorize:
 			return read_writeResponse("You need to enter either 'read' or 'write'")
 
 
-
-
+	# Action server to move the fetch to desried location
 	def go_action_callback(self,goal):
+
 		if goal.location in self.struct:
 			result  = self.move_to(goal.location)
 			self.go_action_server.set_succeeded(goResult(successful=result))
 		else:
 			rospy.logerr("You typed in a location that doesn't exist in the data structure.")
 
+	# Action sever to run patrol
 	def patrol_action_callback(self,goal):
+		# Forloop for patrol movement
 		for key in self.struct:
 			self.move_to(key)
-		#
 		self.patrol_action_server.set_succeeded(patrolResult(successful=True))
 
 
-
-
+	# Function that aquires pose of location
   	def get_location(self, location):
 		# Begin whilelopp that will perform the lookupTransform between the map and base_link
 		while not rospy.is_shutdown():
@@ -113,8 +114,6 @@ class Memorize:
 
 			except (tf.LookupException, tf.ConnectivityException,tf.ExtrapolationException):
 				pass
-
-
 
 
 	def move_to(self, location):
@@ -134,11 +133,9 @@ class Memorize:
 		time_out = 0
 		while self.move_base.get_state() != GoalStatus.SUCCEEDED or time_out > 20:
 			position,_ = self.get_location(location)
-			eucl_dist = math.hypotpostion[0]
-			y = postion[1]
-			self.go_action_server.publish_feedback(goFeedback(progress=str([x,y])))
+			eucl_dist = math.hypot(position[0],position[1])
+			self.go_action_server.publish_feedback(goFeedback(progress=str(eucl_dist)))
 			time.sleep(1)
-
 
 		self.move_base.wait_for_result()
 		return self.move_base.get_state() == GoalStatus.SUCCEEDED

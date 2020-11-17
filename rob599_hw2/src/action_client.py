@@ -29,12 +29,7 @@ def active_callback():
 
 # This callback is called every time the server issues a feedback message.
 def feedback_callback(feedback):
-	global init
-	if init == 0:
-		init = 1
-		if feedback.input == False:
-			rospy.loginfo("The location you typed doesn't exist in the data structure")
-	rospy.loginfo('Feedback: {0}'.format(feedback.progress))
+	rospy.loginfo('Euclidean distance (m) feedback: {0}'.format(feedback.progress))
 
 
 if __name__ == '__main__':
