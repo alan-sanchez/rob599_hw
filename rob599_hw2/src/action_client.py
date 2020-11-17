@@ -7,14 +7,17 @@ import sys
 # Import the messages that we need.
 from rob599_hw2.msg import goAction, goGoal, goFeedback, goResult
 
+init = 0
+
 # This callback will be called when the action is complete.
-def done_callback(status, result):
+def result_callback(status, result):
+
 	# The status argument tells you if the action succeeded.  Sometimes actions that did not succeed can
 	# return partial results.
 	if status == actionlib.GoalStatus.SUCCEEDED:
 		rospy.loginfo('Suceeded with result {0}'.format(result.successful))
 	else:
-		rospy.loginfo('Failed with result {0}. The location you typed in does not exist '.format(result.successful))
+		rospy.loginfo('Failed to reach result {0} '.format(result.successful))
 
 
 # This callback will be called when the action becomes active on the server.  If the server is
@@ -26,6 +29,11 @@ def active_callback():
 
 # This callback is called every time the server issues a feedback message.
 def feedback_callback(feedback):
+	global init
+	if init == 0:
+		init = 1
+		if feedback.input == False:
+			rospy.loginfo("The location you typed doesn't exist in the data structure")
 	rospy.loginfo('Feedback: {0}'.format(feedback.progress))
 
 
@@ -35,7 +43,6 @@ if __name__ == '__main__':
 		arg =str(sys.argv[1])
 	except:
 		pass
-	print(str(arg))
 	# Initialize the node
 	# rospy.init_node('fib_client', argv=sys.argv[1:])
 	rospy.init_node('action_client')
@@ -50,7 +57,7 @@ if __name__ == '__main__':
 
 	# Send the action request, and register the callbacks.  Note that different requests to the same server
 	# can have different callbacks. to make things easier to keep track of.
-	client.send_goal(goal, done_cb=done_callback, active_cb=active_callback, feedback_cb=feedback_callback)
+	client.send_goal(goal, done_cb=result_callback, active_cb=active_callback, feedback_cb=feedback_callback)
 
 	# This will cause the client to wait until there's some result from the server.  If we don't put here,
 	# this example will just end before the action has time to execute.  In other applications, you might

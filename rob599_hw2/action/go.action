@@ -5,5 +5,6 @@ string location
 bool successful
 ---
 # feedback
-#geometry_msgs/Point progress
 string progress
+bool input
+---

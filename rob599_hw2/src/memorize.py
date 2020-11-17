@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Import what we need.
-import rospy, actionlib, tf, math, pickle
+import rospy, actionlib, tf, math, pickle,time
 import numpy as np
 
 from geometry_msgs.msg import Twist, Quaternion
@@ -26,6 +26,7 @@ class Memorize:
 		# Initialize Service Server
 		self.service_server 	= rospy.Service('memorize_position', memorize_position, self.srv_callback)
 		self.rw_service_server 	= rospy.Service('read_write',read_write, self.rw_srv_callback)
+
 		# Make an action client, and wait for the server.
 		self.move_base = actionlib.SimpleActionClient('move_base', MoveBaseAction)
 		self.move_base.wait_for_server()
@@ -40,7 +41,7 @@ class Memorize:
 		self.listener = tf.TransformListener()
 
 		# Intialize Dictionary with start pose and orientation
-		self.struct = {"Start Pose":[[0.0,0.0,0.0],[0,0,0,1]]}
+		self.struct = {"location_1":[[1.0,0.0,0.0],[0,0,0,1]]}
 
 		# Make a goal template, and fill in all of the relevant fields.
 		self.goal = MoveBaseGoal()
@@ -71,18 +72,14 @@ class Memorize:
 	def rw_srv_callback(self,request):
 		if request.order == "write":
 			with open('locations.pickle', 'wb') as handle:
-				pickle.dump(self.struct, protocol=None)
-
-			return read_writeResponse("Write")
+				pickle.dump(self.struct, handle, protocol=None)
+			return read_writeResponse("The data structure has been saved")
 
 		elif request.order == "read":
 			with open('locations.pickle', 'rb') as handle:
 				self.struct = pickle.load(handle)
-
-			for key in self.struct:
-				self.move_to(key)
-			# Successul
-			return read_writeResponse("Yo")
+			return read_writeResponse("The data structure has been uploaded:")
+			print(self.struct)
 
 		else:
 			return read_writeResponse("You need to enter either 'read' or 'write'")
@@ -92,15 +89,15 @@ class Memorize:
 
 	def go_action_callback(self,goal):
 		if goal.location in self.struct:
-			self.move_to(goal.location)
-			self.go_action_server.set_succeeded(goResult(successful=True))
+			result  = self.move_to(goal.location)
+			self.go_action_server.set_succeeded(goResult(successful=result))
 		else:
-			print("didn't work")
+			rospy.logerr("You typed in a location that doesn't exist in the data structure.")
 
 	def patrol_action_callback(self,goal):
 		for key in self.struct:
 			self.move_to(key)
-		# Successul
+		#
 		self.patrol_action_server.set_succeeded(patrolResult(successful=True))
 
 
@@ -133,13 +130,18 @@ class Memorize:
 		self.move_base.send_goal(self.goal, active_cb=self.active_callback, feedback_cb=self.feedback_callback,
 			done_cb=self.done_callback)
 
-		# while self.move_base.get_state() != GoalStatus.SUCCEEDED:
-		# 	x,y = self.get_location(location)
-		# 	self.go_action_server.publish_feedback(goFeedback(progress=str([x,y])))
-			# euclidean_dist = math.sqrt(x**2 + y**2)
+
+		time_out = 0
+		while self.move_base.get_state() != GoalStatus.SUCCEEDED or time_out > 20:
+			position,_ = self.get_location(location)
+			eucl_dist = math.hypotpostion[0]
+			y = postion[1]
+			self.go_action_server.publish_feedback(goFeedback(progress=str([x,y])))
+			time.sleep(1)
 
 
 		self.move_base.wait_for_result()
+		return self.move_base.get_state() == GoalStatus.SUCCEEDED
 
 
 if __name__ == '__main__':
