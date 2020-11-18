@@ -29,7 +29,7 @@ def active_callback():
 
 # This callback is called every time the server issues a feedback message.
 def feedback_callback(feedback):
-	rospy.loginfo('Feedback - euclidean distance to the goal: {0}'.format(feedback.progress))
+	rospy.loginfo('Feedback of euclidean distance to the goal: {0}'.format(feedback.progress))
 
 
 if __name__ == '__main__':

@@ -56,6 +56,8 @@ class Memorize:
 		# Set the orientation in the coordinate frame.
 		self.goal.target_pose.pose.orientation = Quaternion(0,0,0,1)
 
+		# Set rate
+		self.r = rospy.Rate(.5)
 
 	# Service callback for stored location
 	def srv_callback(self,request):
@@ -64,7 +66,7 @@ class Memorize:
 
 		# Add location name and values in data structure
 		self.struct[request.location] =[position,quaternion]
-		return memorize_positionResponse("Location is stored.")
+		return memorize_positionResponse("Location at {0} is stored.".format(position))
 
 
 	# Service callback for creating and uploading data structure of locations
@@ -79,8 +81,8 @@ class Memorize:
 		elif request.order == "read":
 			with open('locations.pickle', 'rb') as handle:
 				self.struct = pickle.load(handle)
+				print(self.struct)
 			return read_writeResponse("The data structure has been uploaded:")
-			print(self.struct)
 
 		else:
 			return read_writeResponse("You need to enter either 'read' or 'write'")
@@ -90,7 +92,7 @@ class Memorize:
 	def go_action_callback(self,goal):
 
 		if goal.location in self.struct:
-			result  = self.move_to(goal.location)
+			result  = self.move_to(goal.location,"go")
 			self.go_action_server.set_succeeded(goResult(successful=result))
 		else:
 			rospy.logerr("You typed in a location that doesn't exist in the data structure.")
@@ -100,9 +102,12 @@ class Memorize:
 	def patrol_action_callback(self,goal):
 		# Forloop for patrol movement
 		for key in self.struct:
-			self.move_to(key)
+			bool = self.move_to(key,"patrol")
+			rospy.loginfo("Fetch reached {0}: {1}".format(key, bool))
+			self.r.sleep()
 
 		self.patrol_action_server.set_succeeded(patrolResult(successful=True))
+
 
 
 	# Function that aquires pose of location
@@ -118,7 +123,7 @@ class Memorize:
 				pass
 
 
-	def move_to(self, location):
+	def move_to(self, location, act):
 		# Set the x and y positions
 		self.goal.target_pose.pose.position.x = self.struct[location][0][0]
 		self.goal.target_pose.pose.position.y = self.struct[location][0][1]
@@ -133,13 +138,26 @@ class Memorize:
 
 		# Euclidean distance feedback
 		time_out = 0
-		while self.move_base.get_state() != GoalStatus.SUCCEEDED or time_out > 40:
-			position,_ = self.get_location(location)
-			x = position[0] - self.goal.target_pose.pose.position.x
-			y = position[1] - self.goal.target_pose.pose.position.y
-			eucl_dist = math.hypot(x,y)
-			self.go_action_server.publish_feedback(goFeedback(progress=str(eucl_dist)))
-			time.sleep(.5)
+		if act == "go":
+			while self.move_base.get_state() != GoalStatus.SUCCEEDED and time_out < 40:
+				position,_ = self.get_location(location)
+				x = position[0] - self.goal.target_pose.pose.position.x
+				y = position[1] - self.goal.target_pose.pose.position.y
+				eucl_dist = math.hypot(x,y)
+				self.go_action_server.publish_feedback(goFeedback(progress=str(eucl_dist)))
+				#After 20 seconds the loop will break
+				time_out += 1
+				time.sleep(.5)
+		else:
+			while self.move_base.get_state() != GoalStatus.SUCCEEDED and time_out < 40:
+				position,_ = self.get_location(location)
+				x = position[0] - self.goal.target_pose.pose.position.x
+				y = position[1] - self.goal.target_pose.pose.position.y
+				eucl_dist = math.hypot(x,y)
+				self.patrol_action_server.publish_feedback(patrolFeedback(progress=str(eucl_dist)))
+				#After 20 seconds the loop will break
+				time_out += 1
+				time.sleep(.5)
 
 		# Wait for result and return a boolean of the success
 		self.move_base.wait_for_result()

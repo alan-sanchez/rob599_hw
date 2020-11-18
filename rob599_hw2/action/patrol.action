@@ -5,4 +5,4 @@ string patrol
 bool successful
 ---
 # feedback
-int64 progress
+string progress
