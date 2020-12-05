@@ -3,6 +3,7 @@
 # Import what we need.
 import rospy
 import numpy as np
+from random import gauss
 
 from sensor_msgs.msg import LaserScan
 
