@@ -1,0 +1,12 @@
+<launch>
+	<param name="median_filter_size" type="int" value="1" />
+	<param name="topic_scan" type="str" value="/noiser" />
+	<param name="laser_noise_variance" type="double" value="0.01" />
+
+	<node pkg="rob599_hw3" type="timer.py" 				 name="timer"         output="screen"/>
+	<node pkg="rob599_hw3" type="median_filter.py" name="median_filter" output="screen"/>
+	<node pkg="rob599_hw3" type="noiser.py" 			 name="noiser"        output="screen"/>
+
+
+
+</launch>

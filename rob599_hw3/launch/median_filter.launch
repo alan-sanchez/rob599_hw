@@ -1,0 +1,8 @@
+<launch>
+	<param name="median_filter_size" type="int" value="1" />
+	<param name="topic_scan" type="str" value="/median_filter" />
+	<node pkg="rob599_hw3" type="timer.py" 				 name="timer"         output="screen"/>
+	<node pkg="rob599_hw3" type="median_filter.py" name="median_filter" output="screen"/>
+
+
+</launch>

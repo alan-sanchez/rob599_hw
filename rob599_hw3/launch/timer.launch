@@ -1,0 +1,4 @@
+<launch>
+	<param name="topic_scan" type="str" value="/scan" />
+	<node pkg="rob599_hw3" type="timer.py"  name="timer"  output="screen"/>
+</launch>
